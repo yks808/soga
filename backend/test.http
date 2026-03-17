@@ -1,0 +1,47 @@
+### Test server
+GET http://localhost:8080
+
+### Test database
+GET http://localhost:8080/test-db
+
+### Signup
+POST http://localhost:8080/auth/signup
+Content-Type: application/json
+
+{
+  "username": "testuser",
+  "email": "test@gmail.com",
+  "password": "test123",
+  "country": "USA",
+  "role": "user",
+  "user_type": "caregiver"
+}
+
+### Login
+POST http://localhost:8080/auth/login
+Content-Type: application/json
+
+{
+  "email": "test@gmail.com",
+  "password": "test123"
+}
+
+### Get all posts
+GET http://localhost:8080/posts
+
+###Get single post
+GET http://localhost:8080/posts/1
+
+### Create post
+POST http://localhost:8080/posts
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Miwicm9sZSI6InVzZXIiLCJpYXQiOjE3NzM3Mjg4MzgsImV4cCI6MTc3NDMzMzYzOH0.tByppq-xtg5BRwa0TiPtX_Ik100v9RLzJe2FiUU2FVY
+
+{
+  "description": "Found this amazing wheelchair sign in Tokyo!",
+  "image_url": "https://example.com/image.jpg",
+  "country_origin": "Japan",
+  "category": "mobility",
+  "disability_type": "wheelchair",
+  "post_type": "discovery"
+}
