@@ -2,20 +2,33 @@ const express = require("express");
 const router = express.Router();
 const pool = require("../db");
 const authenticateToken = require("../middleware/auth");
+const redisClient = require("../redis");
+const generateEmbedding = require("../utils/embeddings");
 
-// GET all posts
+// GET all using redis
 router.get("/", async (req, res) => {
   try {
+    const cached = await redisClient.get("all_posts");
+
+    if (cached) {
+      console.log("Feed from CACHE");
+      return res.json(JSON.parse(cached));
+    }
+
+    console.log("Feed from POSTGRES");
     const posts = await pool.query(
       "SELECT posts.*, users.username, users.profile_photo FROM posts JOIN users ON posts.user_id = users.id ORDER BY posts.created_at DESC",
     );
+
+    await redisClient.setEx("all_posts", 30, JSON.stringify(posts.rows));
+
     res.json(posts.rows);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-//GET all of your posts
+// GET all of your posts
 router.get("/me", authenticateToken, async (req, res) => {
   try {
     const id = req.user.id;
@@ -101,6 +114,23 @@ router.post("/", authenticateToken, async (req, res) => {
         post_type || "discovery",
       ],
     );
+    // create embedding and insert in database
+    const textToEmbed = [
+      newPost.rows[0].description,
+      newPost.rows[0].category,
+      newPost.rows[0].disability_type,
+      newPost.rows[0].country_origin,
+    ]
+      .filter(Boolean)
+      .join(" ");
+
+    const embedding = await generateEmbedding(textToEmbed);
+
+    await pool.query("UPDATE posts SET embedding = $1 WHERE id = $2", [
+      `[${embedding.join(",")}]`,
+      newPost.rows[0].id,
+    ]);
+
     res.status(201).json(newPost.rows[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -125,6 +155,10 @@ router.delete("/:postId", authenticateToken, async (req, res) => {
       });
     }
     await pool.query("DELETE FROM posts WHERE id = $1", [postId]);
+
+    await redisClient.del(`post:${postId}`);
+    console.log(`Cache cleared for post:${postId}`);
+
     res.json({ message: "Post deleted successfully" });
   } catch (err) {
     res.status(500).json({
@@ -244,6 +278,25 @@ router.put("/:postId", authenticateToken, async (req, res) => {
         postId,
       ],
     );
+    const textToEmbed = [
+      edittedPost.rows[0].description,
+      edittedPost.rows[0].category,
+      edittedPost.rows[0].disability_type,
+      edittedPost.rows[0].country_origin,
+    ]
+      .filter(Boolean)
+      .join(" ");
+
+    const embedding = await generateEmbedding(textToEmbed);
+
+    await pool.query("UPDATE posts SET embedding = $1 WHERE id = $2", [
+      `[${embedding.join(",")}]`,
+      postId,
+    ]);
+
+    await redisClient.del(`post:${postId}`);
+    console.log(`Cache cleared for post:${postId} only!`);
+
     res.json(edittedPost.rows[0]);
   } catch (err) {
     res.status(500).json({
@@ -256,13 +309,26 @@ router.put("/:postId", authenticateToken, async (req, res) => {
 router.get("/:postId", async (req, res) => {
   try {
     const { postId } = req.params;
+
+    const cachedPost = await redisClient.get(`post:${postId}`);
+
+    if (cachedPost) {
+      console.log(`post ${postId} from CACHE`);
+      return res.json(JSON.parse(cachedPost));
+    }
+
     const post = await pool.query(
       "SELECT posts.*, users.username, users.profile_photo FROM posts JOIN users ON posts.user_id = users.id WHERE posts.id = $1",
       [postId],
     );
+
     if (post.rows.length === 0) {
       return res.status(404).json({ error: "Post not found" });
     }
+
+    await redisClient.set(`post:${postId}`, 300, JSON.stringify(post.rows[0]));
+    console.log(`Post ${postId} saved to CACHE`);
+
     res.json(post.rows[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });

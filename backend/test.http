@@ -35,11 +35,11 @@ GET http://localhost:8080/posts/1
 ### Create post
 POST http://localhost:8080/posts
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Miwicm9sZSI6InVzZXIiLCJpYXQiOjE3NzM3Mjg4MzgsImV4cCI6MTc3NDMzMzYzOH0.tByppq-xtg5BRwa0TiPtX_Ik100v9RLzJe2FiUU2FVY
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Miwicm9sZSI6InVzZXIiLCJpYXQiOjE3NzU3MDk5MjgsImV4cCI6MTc3NjMxNDcyOH0.xYDaFyXAtSuTd_mI24wtp3oYYzpuHC4lYw5qmiPAkAw
 
 {
-  "description": "Check this cool walker out!",
-  "image_url": "https://testing/image.jpg",
+  "description": "testing testing check 1 2",
+  "image_url": "https://embeddings/image.jpg",
   "country_origin": "US",
   "category": "mobility",
   "disability_type": "CP",
@@ -52,7 +52,7 @@ Content-Type: application/json
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Miwicm9sZSI6InVzZXIiLCJpYXQiOjE3NzM4OTYwODYsImV4cCI6MTc3NDUwMDg4Nn0.Q8ACK98odBjp2-c3yNjsJhHYfKwB1AmzQznPvQvuuFQ
 
 {
-  "description": "Updated description!",
+  "description": "Updated redis!",
   "category": "testcategory"
 }
 
@@ -67,5 +67,12 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Miwicm9sZSI6I
 ### Get posts by category
 GET http://localhost:8080/posts/category/mobility
 
-### Get someone's posts
+### GET all of someone's post ex: all posts of userid = 1
 GET http://localhost:8080/posts/user/1
+
+### Get postid = 1
+GET http://localhost:8080/posts/1
+
+### Generate embedding for post
+POST http://localhost:8080/embeddings/generate/4
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Miwicm9sZSI6InVzZXIiLCJpYXQiOjE3NzU3MDk5MjgsImV4cCI6MTc3NjMxNDcyOH0.xYDaFyXAtSuTd_mI24wtp3oYYzpuHC4lYw5qmiPAkAw

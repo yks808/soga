@@ -5,6 +5,8 @@ require("dotenv").config();
 const pool = require("./db");
 const authRoutes = require("./routes/auth");
 const postRoutes = require("./routes/posts");
+const commentsRoutes = require("./routes/comments");
+const embeddingRoutes = require("./routes/embeddings");
 
 const app = express();
 app.use(cors());
@@ -29,6 +31,8 @@ app.get("/test-db", (req, res) => {
 
 app.use("/auth", authRoutes);
 app.use("/posts", postRoutes);
+app.use("/posts", commentsRoutes);
+app.use("/embeddings", embeddingRoutes);
 
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
